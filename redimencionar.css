@@ -1,4 +1,13 @@
-img {
-    width: 128px;
-    height: 128px;
+img
+{
+    width: 1024px;
+    height: 1024px;
+}
+h1
+{
+    font-size: 256px;
+}
+h2
+{
+    font-size: 128px;
 }
