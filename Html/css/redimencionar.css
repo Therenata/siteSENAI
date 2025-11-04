@@ -1,0 +1,29 @@
+body
+{
+    background-color:black;
+}
+h1 
+{
+    color: white;
+}
+h2 
+{
+    color: white;
+}
+/* Add responsive design for smaller screens */
+@media (max-width: 768px) {
+    img {
+        width: 100%;
+        height: auto;
+    }
+    h1 
+    {
+        font-size: 48px;
+        color: white;
+    }
+    h2 
+    {
+        font-size: 24px;
+        color: white;
+    }
+}
