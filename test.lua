@@ -36,7 +36,7 @@ function listarInventario()
     end
 end
 
--- Exemplo de uso
+
 adicionarItem("Espada", 1)
 adicionarItem("Poção", 5)
 removerItem("Poção", 2)
