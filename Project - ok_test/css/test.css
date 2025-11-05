@@ -1,11 +1,32 @@
-/* Mobile-first responsive CSS */
+/* Mobile-first responsive CSS com tema Almost Cyan */
+:root {
+    --color-bg: #000A42;
+    --color-bg-secondary: #004282;
+    --color-text: #FFFFFF;
+    --color-selection: #A8C1FF;
+    --color-accent: #00E2FF;
+    --color-red: #F84141;
+    --color-orange: #FF6B17;
+    --color-yellow: #FEFF7F;
+    --color-green: #63BA89;
+    --color-blue: #6AB7FB;
+    --color-purple: #C58AFA;
+    --color-magenta: #FF5DB3;
+}
+
 body {
-    background-color: #0b0b0b;
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+    color: var(--color-text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     margin: 0;
     padding: 20px;
     -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+::selection {
+    background: var(--color-selection);
+    color: var(--color-bg);
 }
 
 .container {
@@ -18,7 +39,8 @@ h1 {
     text-align: center;
     font-size: 36px;
     margin: 12px 0 20px;
-    color: #ffffff;
+    color: var(--color-accent);
+    text-shadow: 0 0 15px rgba(0, 226, 255, 0.3);
 }
 
 .grid {
@@ -28,28 +50,37 @@ h1 {
 }
 
 .card {
-    background: rgba(255,255,255,0.03);
+    background: rgba(255,255,255,0.05);
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    border: 1px solid rgba(255,255,255,0.03);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(106, 183, 251, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .card:hover,
 .card:focus-within {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    box-shadow: 0 8px 32px rgba(0, 226, 255, 0.15);
+    border-color: var(--color-blue);
 }
 
 .card h2 {
     margin: 10px 0 0;
     font-size: 20px;
-    color: #ffffff;
+    color: var(--color-text);
+    transition: color 0.3s ease;
+}
+
+.card:hover h2 {
+    color: var(--color-accent);
 }
 
 .card figure {
     margin: 0;
+    position: relative;
+    overflow: hidden;
 }
 
 .card img {
@@ -57,7 +88,26 @@ h1 {
     width: 100%;
     height: 200px;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
+    transition: transform 0.5s ease;
+}
+
+.card:hover img {
+    transform: scale(1.05);
+}
+
+.spinner {
+    border: 3px solid rgba(106, 183, 251, 0.1);
+    border-top: 3px solid var(--color-accent);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Tablet */
