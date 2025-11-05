@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+    <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gráficos do PIB</title>
     <link rel="stylesheet" href="../css/test.css">
     <style>
         /* Ajustes específicos desta página */
-        .figura {
-            text-align: center;
-        }
-        .figura img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-        }
-        .note {
-            text-align: center;
-            color: rgba(255,255,255,0.8);
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-        }
+        .figura { text-align: center; }
+        .note { text-align: center; color: rgba(255,255,255,0.8); font-size: 0.95rem; margin-bottom: 12px; }
+        /* Spinner */
+        #pib-spinner { display:none; position:relative; text-align:center; padding:18px 0; }
+        .spinner-dot { width:12px; height:12px; background:#2b8cbe; border-radius:50%; display:inline-block; margin:0 6px; animation: spin 1s infinite ease-in-out; }
+        .spinner-dot:nth-child(2){ animation-delay: .15s } .spinner-dot:nth-child(3){ animation-delay: .3s }
+        @keyframes spin { 0% { transform: translateY(0);} 50% { transform: translateY(-8px);} 100% { transform: translateY(0);} }
+        /* Canvas height */
+        .figura canvas { width:100%; height:380px; }
     </style>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header class="container" style="padding-top:14px; padding-bottom:6px;">
@@ -38,6 +34,13 @@
         <h1>Gráficos do PIB (IBGE)</h1>
 
         <p class="note">Os gráficos abaixo são gerados dinamicamente quando a página é carregada (dados do IBGE quando disponíveis; fallback para fonte pública se necessário).</p>
+
+        <div id="pib-spinner" aria-hidden="false">
+            <span class="spinner-dot"></span>
+            <span class="spinner-dot"></span>
+            <span class="spinner-dot"></span>
+            <div style="color:rgba(255,255,255,0.8);margin-top:8px;">Carregando dados e gerando gráficos...</div>
+        </div>
 
         <section class="card figura">
             <h3 style="text-align:center;color:#ddd;margin-bottom:8px;">PIB por ano</h3>
@@ -58,131 +61,6 @@
         <img id="lb-img" src="" alt="" style="max-width:92%;max-height:86%;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.7);">
     </div>
 
-    <!-- Chart.js from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Função auxiliar para buscar dados do IBGE (Sidra). Se falhar, usa fallback CSV.
-        async function fetchData() {
-            // Tentar Sidra (IBGE). Este endpoint é um exemplo; pode ser ajustado conforme tabela desejada.
-            const sidraUrl = 'https://servicodados.ibge.gov.br/api/v3/agregados/5938/periodos/2010/2022/variaveis/63?localidade=all';
-            try {
-                const resp = await fetch(sidraUrl);
-                if (!resp.ok) throw new Error('Erro Sidra: ' + resp.status);
-                const json = await resp.json();
-                // Transformar resposta Sidra em array {ano, pib}
-                // A estrutura do Sidra pode variar; este bloco tenta mapear anos e valores onde possível
-                const results = [];
-                if (Array.isArray(json) && json.length > 0) {
-                    const obj = json[0];
-                    if (obj && obj.resultados && Array.isArray(obj.resultados[0].series)) {
-                        const series = obj.resultados[0].series[0];
-                        if (series && Array.isArray(series.series)) {
-                            // Estrutura não padronizada — fallback para CSV
-                            throw new Error('Estrutura Sidra inesperada — usando fallback');
-                        }
-                    }
-                }
-                // Se não conseguiu mapear, lançar para usar fallback
-                throw new Error('Resposta Sidra inacessível ou inesperada — usando fallback');
-            } catch (e) {
-                console.log('Sidra falhou ou não mapeável:', e.message);
-                // fallback: carregar CSV público
-                try {
-                    const csvUrl = 'https://raw.githubusercontent.com/datasets-brasil/pib/master/pib_ano.csv';
-                    const r = await fetch(csvUrl);
-                    if (!r.ok) throw new Error('Erro CSV fallback: ' + r.status);
-                    const text = await r.text();
-                    const lines = text.trim().split('\n');
-                    const headers = lines.shift().split(',').map(h => h.replace(/\r/g,'').trim().toLowerCase());
-                    const anoIdx = headers.indexOf('ano');
-                    const pibIdx = headers.indexOf('pib');
-                    const data = lines.map(l => l.split(',')).map(cols => ({
-                        ano: Number(cols[anoIdx]),
-                        pib: Number(cols[pibIdx])
-                    })).filter(d => !isNaN(d.ano) && !isNaN(d.pib));
-                    return data;
-                } catch (err) {
-                    console.error('Erro ao carregar fallback CSV:', err);
-                    return [];
-                }
-            }
-        }
-
-        function computeGrowth(sorted) {
-            const growth = [];
-            for (let i = 1; i < sorted.length; i++) {
-                const prev = sorted[i-1].pib;
-                const cur = sorted[i].pib;
-                const val = prev !== 0 ? ((cur - prev) / prev) * 100 : 0;
-                growth.push({ ano: sorted[i].ano, growth: val });
-            }
-            return growth;
-        }
-
-        function renderCharts(data) {
-            if (!data || data.length === 0) {
-                document.getElementById('chart-pib-ano').getContext('2d').fillText('Dados não disponíveis', 10, 50);
-                return;
-            }
-
-            // Ordenar por ano
-            const sorted = data.sort((a,b) => a.ano - b.ano);
-
-            const labels = sorted.map(d => String(d.ano));
-            const values = sorted.map(d => d.pib);
-
-            // PIB por ano (linha)
-            const ctx1 = document.getElementById('chart-pib-ano').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'PIB',
-                        data: values,
-                        borderColor: '#2b8cbe',
-                        backgroundColor: 'rgba(43,140,190,0.15)',
-                        tension: 0.25,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: false } }
-                }
-            });
-
-            // Crescimento percentual (barras)
-            const growth = computeGrowth(sorted);
-            const labelsG = growth.map(g => String(g.ano));
-            const valuesG = growth.map(g => Number(g.growth.toFixed(2)));
-
-            const ctx2 = document.getElementById('chart-crescimento').getContext('2d');
-            new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: labelsG,
-                    datasets: [{
-                        label: 'Crescimento (%)',
-                        data: valuesG,
-                        backgroundColor: valuesG.map(v => v >= 0 ? 'rgba(102,194,165,0.9)' : 'rgba(239,138,98,0.9)')
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
-
-        // Ao carregar a página, obter dados e renderizar
-        document.addEventListener('DOMContentLoaded', async () => {
-            const raw = await fetchData();
-            // raw já é array {ano,pib}
-            renderCharts(raw);
-        });
-    </script>
+    <script src="../js/pib-charts.js"></script>
 </body>
 </html>
