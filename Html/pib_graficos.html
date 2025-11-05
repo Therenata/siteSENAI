@@ -1,77 +1,67 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raças de Cachorros</title>
-    <link rel="stylesheet" href="../css/test.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gráficos do PIB</title>
+    <link rel="stylesheet" href="css/test.css">
+    <style>
+        /* Pequenos ajustes específicos desta página */
+        .figura {
+            text-align: center;
+        }
+        .figura img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+        }
+        .note {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+    </style>
 </head>
-
 <body>
     <header class="container" style="padding-top:14px; padding-bottom:6px;">
         <nav style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
             <div style="display:flex;gap:12px;align-items:center;">
-                <a href="ok_test.html" aria-current="page" class="nav-link" style="color:#fff;text-decoration:none;font-weight:600;">Galeria</a>
-                <a href="../../Html/pib_graficos.html" class="nav-link" style="color:#fff;text-decoration:none;opacity:0.9;">Gráficos do PIB</a>
+                <a href="pib_graficos.html" aria-current="page" class="nav-link" style="color:#fff;text-decoration:none;font-weight:600;">Gráficos do PIB</a>
+                <a href="../Project%20-%20ok_test/Html/ok_test.html" class="nav-link" style="color:#fff;text-decoration:none;opacity:0.9;">Galeria</a>
             </div>
             <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);">Espaço de brainstorm colaborativo</div>
         </nav>
     </header>
 
     <main class="container">
-        <h1>Raças de Cachorros</h1>
+        <h1>Gráficos do PIB</h1>
 
-        <div class="grid">
-            <section class="card">
-                <figure>
-                    <img src="../img/lb.jpg" alt="Labrador Retriever">
-                </figure>
-                <h2>Labrador Retriever</h2>
-            </section>
+        <p class="note">Se as imagens estiverem faltando, gere os gráficos executando o script Python: <code>python Python\\PIB_brasil.py</code></p>
 
-            <section class="card">
-                <figure>
-                    <img src="../img/pt.jpg" alt="Pastor Alemão">
-                </figure>
-                <h2>Pastor Alemão</h2>
-            </section>
+        <section class="card figura">
+            <figure>
+                <img src="img/pib_por_ano.png" alt="PIB por ano" loading="lazy">
+                <figcaption>PIB por ano (linha)</figcaption>
+            </figure>
+        </section>
 
-            <section class="card">
-                <figure>
-                    <img src="../img/gold.jpg" alt="Golden Retriever">
-                </figure>
-                <h2>Golden Retriever</h2>
-            </section>
-
-            <section class="card">
-                <figure>
-                    <img src="../img/bld.jpg" alt="Bulldog">
-                </figure>
-                <h2>Bulldog</h2>
-            </section>
-                <!-- Section para a página de gráficos do PIB -->
-                <section class="card">
-                    <a href="pib_graficos.html" style="color:inherit;text-decoration:none;">
-                        <figure>
-                            <img src="../img/pib_por_ano.png" alt="Gráficos do PIB" loading="lazy" onerror="this.onerror=null;this.src='../img/placeholder_pib.svg'">
-                        </figure>
-                        <h2>Gráficos do PIB</h2>
-                    </a>
-                </section>
-        </div>
-
-        <p style="text-align:center;margin-top:18px;color:rgba(255,255,255,0.85);">Clique em uma imagem para ampliar. Se faltar alguma imagem, ela será substituída por um placeholder.</p>
-
+        <section class="card figura">
+            <figure>
+                <img src="img/crescimento_pib.png" alt="Crescimento do PIB" loading="lazy">
+                <figcaption>Crescimento anual do PIB (%)</figcaption>
+            </figure>
+        </section>
     </main>
 
-    <!-- Lightbox modal + imagem placeholder handling -->
+    <!-- Lightbox + placeholder handling similar to gallery -->
     <div id="lightbox" aria-hidden="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:1200;">
         <button id="lb-close" aria-label="Fechar" style="position:absolute;top:18px;right:20px;background:none;border:0;color:#fff;font-size:28px;cursor:pointer;">×</button>
         <img id="lb-img" src="" alt="" style="max-width:92%;max-height:86%;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.7);">
     </div>
 
     <script>
-        // SVG placeholder data URI
         const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
               <rect width="100%" height="100%" fill="#222" rx="8"/>
@@ -81,7 +71,6 @@
             </svg>
         `);
 
-        // Apenas afeta imagens dentro do main desta página
         document.querySelectorAll('main img').forEach(img => {
             img.addEventListener('error', () => {
                 if (!img.dataset.fallback) {
@@ -90,9 +79,8 @@
                 }
             });
 
-            // Lightbox abrir ao clicar
             img.style.cursor = 'zoom-in';
-            img.addEventListener('click', (e) => {
+            img.addEventListener('click', () => {
                 const lb = document.getElementById('lightbox');
                 const lbimg = document.getElementById('lb-img');
                 lbimg.src = img.src;
@@ -102,14 +90,12 @@
             });
         });
 
-        // Fechar lightbox
         document.getElementById('lb-close').addEventListener('click', () => {
             const lb = document.getElementById('lightbox');
             lb.style.display = 'none';
             lb.setAttribute('aria-hidden','true');
         });
 
-        // Fechar com Escape
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.getElementById('lightbox').style.display = 'none'; } });
     </script>
 </body>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gráficos do PIB</title>
+    <link rel="stylesheet" href="../css/test.css">
+    <style>
+        /* Ajustes específicos desta página */
+        .figura {
+            text-align: center;
+        }
+        .figura img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+        }
+        .note {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header class="container" style="padding-top:14px; padding-bottom:6px;">
+        <nav style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
+            <div style="display:flex;gap:12px;align-items:center;">
+                <a href="ok_test.html" class="nav-link" style="color:#fff;text-decoration:none;">Galeria</a>
+            </div>
+            <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);">Espaço de brainstorm colaborativo</div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1>Gráficos do PIB (IBGE)</h1>
+
+        <p class="note">Os gráficos abaixo são gerados dinamicamente quando a página é carregada (dados do IBGE quando disponíveis; fallback para fonte pública se necessário).</p>
+
+        <section class="card figura">
+            <h3 style="text-align:center;color:#ddd;margin-bottom:8px;">PIB por ano</h3>
+            <canvas id="chart-pib-ano" aria-label="PIB por ano" role="img"></canvas>
+            <p style="text-align:center;color:rgba(255,255,255,0.8);font-size:0.9rem;margin-top:8px;">Fonte: IBGE (Sidra) ou fallback público</p>
+        </section>
+
+        <section class="card figura">
+            <h3 style="text-align:center;color:#ddd;margin-bottom:8px;">Crescimento anual do PIB (%)</h3>
+            <canvas id="chart-crescimento" aria-label="Crescimento anual do PIB" role="img"></canvas>
+            <p style="text-align:center;color:rgba(255,255,255,0.8);font-size:0.9rem;margin-top:8px;">Valores percentuais ano a ano</p>
+        </section>
+    </main>
+
+    <!-- Lightbox + placeholder handling -->
+    <div id="lightbox" aria-hidden="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:1200;">
+        <button id="lb-close" aria-label="Fechar" style="position:absolute;top:18px;right:20px;background:none;border:0;color:#fff;font-size:28px;cursor:pointer;">×</button>
+        <img id="lb-img" src="" alt="" style="max-width:92%;max-height:86%;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.7);">
+    </div>
+
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Função auxiliar para buscar dados do IBGE (Sidra). Se falhar, usa fallback CSV.
+        async function fetchData() {
+            // Tentar Sidra (IBGE). Este endpoint é um exemplo; pode ser ajustado conforme tabela desejada.
+            const sidraUrl = 'https://servicodados.ibge.gov.br/api/v3/agregados/5938/periodos/2010/2022/variaveis/63?localidade=all';
+            try {
+                const resp = await fetch(sidraUrl);
+                if (!resp.ok) throw new Error('Erro Sidra: ' + resp.status);
+                const json = await resp.json();
+                // Transformar resposta Sidra em array {ano, pib}
+                // A estrutura do Sidra pode variar; este bloco tenta mapear anos e valores onde possível
+                const results = [];
+                if (Array.isArray(json) && json.length > 0) {
+                    const obj = json[0];
+                    if (obj && obj.resultados && Array.isArray(obj.resultados[0].series)) {
+                        const series = obj.resultados[0].series[0];
+                        if (series && Array.isArray(series.series)) {
+                            // Estrutura não padronizada — fallback para CSV
+                            throw new Error('Estrutura Sidra inesperada — usando fallback');
+                        }
+                    }
+                }
+                // Se não conseguiu mapear, lançar para usar fallback
+                throw new Error('Resposta Sidra inacessível ou inesperada — usando fallback');
+            } catch (e) {
+                console.log('Sidra falhou ou não mapeável:', e.message);
+                // fallback: carregar CSV público
+                try {
+                    const csvUrl = 'https://raw.githubusercontent.com/datasets-brasil/pib/master/pib_ano.csv';
+                    const r = await fetch(csvUrl);
+                    if (!r.ok) throw new Error('Erro CSV fallback: ' + r.status);
+                    const text = await r.text();
+                    const lines = text.trim().split('\n');
+                    const headers = lines.shift().split(',').map(h => h.replace(/\r/g,'').trim().toLowerCase());
+                    const anoIdx = headers.indexOf('ano');
+                    const pibIdx = headers.indexOf('pib');
+                    const data = lines.map(l => l.split(',')).map(cols => ({
+                        ano: Number(cols[anoIdx]),
+                        pib: Number(cols[pibIdx])
+                    })).filter(d => !isNaN(d.ano) && !isNaN(d.pib));
+                    return data;
+                } catch (err) {
+                    console.error('Erro ao carregar fallback CSV:', err);
+                    return [];
+                }
+            }
+        }
+
+        function computeGrowth(sorted) {
+            const growth = [];
+            for (let i = 1; i < sorted.length; i++) {
+                const prev = sorted[i-1].pib;
+                const cur = sorted[i].pib;
+                const val = prev !== 0 ? ((cur - prev) / prev) * 100 : 0;
+                growth.push({ ano: sorted[i].ano, growth: val });
+            }
+            return growth;
+        }
+
+        function renderCharts(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('chart-pib-ano').getContext('2d').fillText('Dados não disponíveis', 10, 50);
+                return;
+            }
+
+            // Ordenar por ano
+            const sorted = data.sort((a,b) => a.ano - b.ano);
+
+            const labels = sorted.map(d => String(d.ano));
+            const values = sorted.map(d => d.pib);
+
+            // PIB por ano (linha)
+            const ctx1 = document.getElementById('chart-pib-ano').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'PIB',
+                        data: values,
+                        borderColor: '#2b8cbe',
+                        backgroundColor: 'rgba(43,140,190,0.15)',
+                        tension: 0.25,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+
+            // Crescimento percentual (barras)
+            const growth = computeGrowth(sorted);
+            const labelsG = growth.map(g => String(g.ano));
+            const valuesG = growth.map(g => Number(g.growth.toFixed(2)));
+
+            const ctx2 = document.getElementById('chart-crescimento').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labelsG,
+                    datasets: [{
+                        label: 'Crescimento (%)',
+                        data: valuesG,
+                        backgroundColor: valuesG.map(v => v >= 0 ? 'rgba(102,194,165,0.9)' : 'rgba(239,138,98,0.9)')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Ao carregar a página, obter dados e renderizar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const raw = await fetchData();
+            // raw já é array {ano,pib}
+            renderCharts(raw);
+        });
+    </script>
+</body>
+</html>
