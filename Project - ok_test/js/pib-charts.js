@@ -7,7 +7,7 @@
 
 async function fetchSidraValues() {
   // endpoint 'values' retorna uma matriz cujo primeiro elemento costuma ser cabeçalho
-  const sidraUrl = 'https://apisidra.ibge.gov.br/values/t/5938/n1/all/v/all/p/all';
+  const sidraUrl = 'https://apisidra.ibge.gov.br/values/t/6784/n1/1/v/9808/p/all';
   try {
     const r = await fetch(sidraUrl);
     if (!r.ok) throw new Error('Sidra não respondeu: ' + r.status);
