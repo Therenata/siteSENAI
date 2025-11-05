@@ -20,8 +20,8 @@ def carregar_dados(url: str = None) -> pd.DataFrame:
     """
     # Primeiro, tentar IBGE Sidra (assumindo tabela anual de PIB). Se falhar, usa fallback
     try:
-        # Exemplo de consulta Sidra (pode ser ajustada conforme necessidade)
-        sidra_url = 'https://apisidra.ibge.gov.br/values/t/5938/n1/1/v/all/p/all/c11255/90707/d/v585%202'
+        # Tabela 6784: PIB - valores correntes (Milhões de Reais)
+        sidra_url = 'https://apisidra.ibge.gov.br/values/t/6784/n1/1/v/9808/p/all'
         resp = requests.get(sidra_url, timeout=15)
         resp.raise_for_status()
         data = resp.json()
