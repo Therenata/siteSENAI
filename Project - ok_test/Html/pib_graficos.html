@@ -62,5 +62,127 @@
     </div>
 
     <script src="../js/pib-charts.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('chart-pib-ano').getContext('2d');
+
+            // Dados fictícios do PIB do Brasil com zonas máxima e mínima
+            const data = {
+                labels: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [
+                    {
+                        label: 'PIB do Brasil (em trilhões de R$)',
+                        data: [7.0, 7.3, 7.4, 9.0, 10.1, 10.9, 11.4],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Zona Máxima',
+                        data: [7.1, 7.6, 7.8, 9.5, 10.5, 11.0, 11.6],
+                        type: 'line',
+                        borderColor: 'rgba(0, 255, 0, 0.8)',
+                        borderDash: [5, 5],
+                        fill: false
+                    },
+                    {
+                        label: 'Zona Mínima',
+                        data: [6.9, 7.2, 7.3, 8.5, 9.5, 10.0, 10.5],
+                        type: 'line',
+                        borderColor: 'rgba(255, 0, 0, 0.8)',
+                        borderDash: [5, 5],
+                        fill: false
+                    }
+                ]
+            };
+
+            // Configuração do gráfico
+            const config = {
+                type: 'line', // Alterado para gráfico de linhas
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evolução do PIB do Brasil com Zonas Máxima e Mínima'
+                        }
+                    }
+                },
+            };
+
+            // Renderizar o gráfico
+            new Chart(ctx, config);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctxGrowth = document.getElementById('chart-crescimento').getContext('2d');
+
+            // Dados fictícios de crescimento anual do PIB do Brasil com zonas máxima e mínima
+            const growthData = {
+                labels: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Crescimento Anual do PIB (%)',
+                        data: [1.3, 1.1, -4.1, 4.6, 2.9, 3.0, 2.5],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Zona Máxima',
+                        data: [1.5, 1.3, -3.8, 5.0, 3.2, 3.3, 2.8],
+                        type: 'line',
+                        borderColor: 'rgba(0, 255, 0, 0.8)',
+                        borderDash: [5, 5],
+                        fill: false
+                    },
+                    {
+                        label: 'Zona Mínima',
+                        data: [1.1, 0.9, -4.4, 4.2, 2.6, 2.7, 2.2],
+                        type: 'line',
+                        borderColor: 'rgba(255, 0, 0, 0.8)',
+                        borderDash: [5, 5],
+                        fill: false
+                    }
+                ]
+            };
+
+            // Configuração do gráfico de crescimento
+            const growthConfig = {
+                type: 'line',
+                data: growthData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Crescimento Anual do PIB do Brasil com Zonas Máxima e Mínima'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+            };
+
+            // Renderizar o gráfico de crescimento
+            new Chart(ctxGrowth, growthConfig);
+        });
+    </script>
 </body>
+
 </html>
