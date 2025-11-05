@@ -1,0 +1,87 @@
+/* Mobile-first responsive CSS */
+body {
+    background-color: #0b0b0b;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin: 0;
+    padding: 20px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 36px;
+    margin: 12px 0 20px;
+    color: #ffffff;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.card {
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid rgba(255,255,255,0.03);
+}
+
+.card:hover,
+.card:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+.card h2 {
+    margin: 10px 0 0;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.card figure {
+    margin: 0;
+}
+
+.card img {
+    display: block;
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Tablet */
+@media (min-width: 600px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    h1 {
+        font-size: 44px;
+    }
+    .card img {
+        height: 220px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    h1 {
+        font-size: 56px;
+    }
+    .card img {
+        height: 240px;
+    }
+}
